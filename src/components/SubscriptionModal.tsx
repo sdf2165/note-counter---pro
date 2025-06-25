@@ -35,7 +35,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       return;
     }
 
-    if (!userProfile.email_verified) {
+    if (!authService.isEmailVerified(null, userProfile)) {
       setError('Please verify your email address before subscribing');
       return;
     }
@@ -250,7 +250,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
               </div>
               <button
                 onClick={handleSubscribe}
-                disabled={loading || !userProfile || !userProfile.email_verified}
+                disabled={loading || !userProfile || !authService.isEmailVerified(null, userProfile)}
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-8 rounded-lg font-bold text-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg transform hover:scale-105 flex items-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 <CreditCard size={20} className="mr-2" />
@@ -263,7 +263,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 : 'Demo mode: No actual payment required • Full features unlocked for testing'
               }
             </p>
-            {!userProfile?.email_verified && (
+            {!authService.isEmailVerified(null, userProfile) && (
               <p className="text-red-500 text-sm text-center mt-2">
                 Please verify your email address before subscribing
               </p>

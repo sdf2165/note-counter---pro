@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Crown, Calendar, CreditCard, Cloud, Database, Settings, Bell, Shield, Download, FileText, Printer, LogOut, Smartphone, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, User, Mail, Crown, Calendar, CreditCard, Cloud, Database, Settings, Bell, Shield, Download, FileText, Printer, LogOut, Smartphone, CheckCircle, AlertCircle, RefreshCw, ExternalLink } from 'lucide-react';
 import { UserProfile } from '../lib/auth';
 import { authService } from '../lib/auth';
 import { cloudStorageService } from '../lib/cloudStorage';
 import { exportService } from '../lib/exportService';
+import { stripeService, isStripeConfigured } from '../lib/stripe';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -51,6 +52,20 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       console.error('Error loading cloud data:', error);
     } finally {
       setLoadingCloudData(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    if (!userProfile?.stripe_customer_id) {
+      alert('No subscription found to manage');
+      return;
+    }
+
+    try {
+      await stripeService.createPortalSession(userProfile.stripe_customer_id);
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      alert('Failed to open subscription management portal');
     }
   };
 
@@ -106,7 +121,8 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
         status: 'Premium Active', 
         color: 'text-green-600', 
         bgColor: 'bg-green-100',
-        tier: userProfile.subscription_tier === 'monthly' ? 'Monthly Plan' : 'Annual Plan'
+        tier: userProfile.subscription_tier === 'monthly' ? 'Monthly Plan' : 
+              userProfile.subscription_tier === 'quarterly' ? 'Quarterly Plan' : 'Annual Plan'
       };
     }
     
@@ -223,8 +239,12 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   </h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Two-Factor Authentication</span>
-                      <span className="text-sm text-gray-500">Coming Soon</span>
+                      <span className="text-sm text-gray-600">Email Verification</span>
+                      {authService.isEmailVerified(user, userProfile) ? (
+                        <CheckCircle className="text-green-500" size={16} />
+                      ) : (
+                        <AlertCircle className="text-red-500" size={16} />
+                      )}
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Data Encryption</span>
@@ -326,6 +346,18 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                         </li>
                       </ul>
                     </div>
+
+                    {isStripeConfigured() && (
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={handleManageSubscription}
+                          className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors flex items-center"
+                        >
+                          <ExternalLink size={16} className="mr-2" />
+                          Manage Subscription
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center">
