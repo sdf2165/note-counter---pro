@@ -328,14 +328,14 @@ function App() {
   };
 
   const MenuModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-gray-800">Menu</h2>
             <button
               onClick={() => setShowMenu(false)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 p-1"
             >
               <X size={24} />
             </button>
@@ -349,11 +349,11 @@ function App() {
                 <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-100">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center mr-3">
+                      <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
                         <User className="text-white" size={20} />
                       </div>
-                      <div>
-                        <div className="font-medium text-gray-800">{user.email}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-gray-800 truncate">{user.email}</div>
                         <div className="text-sm text-gray-600">
                           {authService.hasPremiumAccess(userProfile) ? 'Premium Member' : 'Free Account'}
                           {!authService.isEmailVerified(user, userProfile) && (
@@ -363,7 +363,7 @@ function App() {
                       </div>
                     </div>
                     {authService.hasPremiumAccess(userProfile) && (
-                      <div className="flex items-center text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">
+                      <div className="flex items-center text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full flex-shrink-0">
                         <Crown size={16} className="mr-1" />
                         <span className="text-sm font-medium">Premium</span>
                       </div>
@@ -410,7 +410,7 @@ function App() {
                         setShowMenu(false);
                         handleSignOut();
                       }}
-                      className="bg-gray-200 text-gray-700 py-2 px-3 rounded-md hover:bg-gray-300 transition-colors flex items-center justify-center text-sm"
+                      className="bg-gray-200 text-gray-700 py-2 px-3 rounded-md hover:bg-gray-300 transition-colors flex items-center justify-center text-sm col-span-2"
                     >
                       <LogOut size={16} className="mr-2" />
                       Sign Out
@@ -624,11 +624,12 @@ function App() {
               />
             )}
 
-            <header className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-4 shadow-lg">
+            <header className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-4 shadow-lg relative z-40">
               <div className="container mx-auto flex justify-between items-center">
-                <h1 className="text-2xl font-bold flex items-center">
-                  <CurrencyIcon className="mr-2" />
-                  Note Counter
+                <h1 className="text-xl md:text-2xl font-bold flex items-center">
+                  <CurrencyIcon className="mr-2" size={20} />
+                  <span className="hidden sm:inline">Note Counter</span>
+                  <span className="sm:hidden">Counter</span>
                   {authService.hasPremiumAccess(userProfile) && (
                     <Crown className="ml-2 text-yellow-300" size={20} />
                   )}
@@ -641,17 +642,17 @@ function App() {
                     <Menu size={24} />
                   </button>
                 </div>
-                <div className="hidden md:flex space-x-4 items-center">
+                <div className="hidden md:flex space-x-2 lg:space-x-4 items-center">
                   <select
                     value={selectedCurrency}
                     onChange={(e) => setSelectedCurrency(e.target.value as 'INR' | 'USD')}
-                    className="bg-white text-indigo-600 px-3 py-1 rounded-md font-medium"
+                    className="bg-white text-indigo-600 px-2 py-1 rounded-md font-medium text-sm"
                   >
                     <option value="INR">INR (₹)</option>
                     <option value="USD">USD ($)</option>
                   </select>
                   <button
-                    className={`py-2 px-4 rounded-md font-medium transition-all ${
+                    className={`py-2 px-3 rounded-md font-medium transition-all text-sm ${
                       activeTab === 'counter'
                         ? 'bg-white text-indigo-600'
                         : 'text-white hover:bg-indigo-700/50'
@@ -659,12 +660,13 @@ function App() {
                     onClick={() => setActiveTab('counter')}
                   >
                     <div className="flex items-center">
-                      <CurrencyIcon className="mr-2" size={18} />
-                      Money Counter
+                      <CurrencyIcon className="mr-1" size={16} />
+                      <span className="hidden lg:inline">Money Counter</span>
+                      <span className="lg:hidden">Counter</span>
                     </div>
                   </button>
                   <button
-                    className={`py-2 px-4 rounded-md font-medium transition-all ${
+                    className={`py-2 px-3 rounded-md font-medium transition-all text-sm ${
                       activeTab === 'history'
                         ? 'bg-white text-indigo-600'
                         : 'text-white hover:bg-indigo-700/50'
@@ -672,7 +674,7 @@ function App() {
                     onClick={() => setActiveTab('history')}
                   >
                     <div className="flex items-center">
-                      <History className="mr-2" size={18} />
+                      <History className="mr-1" size={16} />
                       History
                     </div>
                   </button>
@@ -684,20 +686,20 @@ function App() {
                   {user ? (
                     <button
                       onClick={() => setShowProfileModal(true)}
-                      className="ml-2 p-2 rounded-full hover:bg-indigo-700/50 transition-colors flex items-center"
+                      className="ml-2 p-2 rounded-full hover:bg-indigo-700/50 transition-colors flex items-center relative"
                       title="User Profile"
                     >
                       <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
                         <User className="text-indigo-600" size={16} />
                       </div>
                       {!authService.isEmailVerified(user, userProfile) && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full absolute ml-6 -mt-6"></div>
+                        <div className="w-2 h-2 bg-red-500 rounded-full absolute top-1 right-1"></div>
                       )}
                     </button>
                   ) : (
                     <button
                       onClick={() => setShowAuthModal(true)}
-                      className="ml-2 bg-white text-indigo-600 py-2 px-4 rounded-md hover:bg-gray-100 transition-colors font-medium"
+                      className="ml-2 bg-white text-indigo-600 py-2 px-3 rounded-md hover:bg-gray-100 transition-colors font-medium text-sm"
                     >
                       Sign In
                     </button>
@@ -714,7 +716,7 @@ function App() {
             </header>
 
             {mobileMenuOpen && (
-              <div className="md:hidden bg-indigo-500 text-white">
+              <div className="md:hidden bg-indigo-500 text-white relative z-30">
                 <div className="container mx-auto p-2">
                   <select
                     value={selectedCurrency}
@@ -837,22 +839,22 @@ function App() {
               onSyncFromCloud={syncFromCloud}
             />
 
-            <div className="container mx-auto p-4">
+            <div className="container mx-auto p-4 relative z-10">
               {activeTab === 'counter' ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-1">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="lg:col-span-1">
                     <div className="bg-white rounded-lg shadow-lg p-4 h-full border border-gray-200">
                       <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold text-gray-800">Count Your Money</h2>
+                        <h2 className="text-lg lg:text-xl font-semibold text-gray-800">Count Your Money</h2>
                         <button
                           onClick={() => setHideAmounts(!hideAmounts)}
-                          className="text-gray-600 hover:text-indigo-600 transition-colors"
+                          className="text-gray-600 hover:text-indigo-600 transition-colors p-1"
                           title={hideAmounts ? "Show amounts" : "Hide amounts"}
                         >
                           {hideAmounts ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                         {leftColumnDenominations.map((denom) => (
                           <DenominationCounter
                             key={denom.value}
@@ -868,10 +870,10 @@ function App() {
                     </div>
                   </div>
                   
-                  <div className="md:col-span-1">
+                  <div className="lg:col-span-1">
                     <div className="bg-white rounded-lg shadow-lg p-4 h-full border border-gray-200">
-                      <h2 className="text-xl font-semibold mb-4 text-gray-800">&nbsp;</h2>
-                      <div className="space-y-3">
+                      <h2 className="text-lg lg:text-xl font-semibold mb-4 text-gray-800">&nbsp;</h2>
+                      <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                         {rightColumnDenominations.map((denom) => (
                           <DenominationCounter
                             key={denom.value}
@@ -887,26 +889,26 @@ function App() {
                     </div>
                   </div>
                   
-                  <div className="md:col-span-1">
+                  <div className="lg:col-span-1">
                     <div className="bg-white rounded-lg shadow-lg p-4 h-full border border-gray-200">
-                      <h2 className="text-xl font-semibold mb-4 text-gray-800">Summary</h2>
+                      <h2 className="text-lg lg:text-xl font-semibold mb-4 text-gray-800">Summary</h2>
                       
                       <div className="space-y-4">
                         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-100">
-                          <h3 className="text-lg font-medium text-gray-700">Total Count</h3>
-                          <p className="text-3xl font-bold text-indigo-600">
+                          <h3 className="text-base font-medium text-gray-700">Total Count</h3>
+                          <p className="text-2xl lg:text-3xl font-bold text-indigo-600">
                             {totalCount}
                           </p>
                         </div>
                         
                         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-100">
-                          <h3 className="text-lg font-medium text-gray-700">Total Amount</h3>
-                          <p className="text-3xl font-bold text-indigo-600">
+                          <h3 className="text-base font-medium text-gray-700">Total Amount</h3>
+                          <p className="text-2xl lg:text-3xl font-bold text-indigo-600 break-all">
                             {formatAmount(totalAmount)}
                           </p>
                         </div>
                         
-                        <div className="flex space-x-2">
+                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                           <button 
                             onClick={handleReset}
                             className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md transition-all shadow-md active:transform active:scale-95"
@@ -938,7 +940,7 @@ function App() {
                         <div className="mt-4">
                           <div className="flex items-center mb-2">
                             <Calculator size={18} className="mr-2 text-indigo-600" />
-                            <h3 className="text-lg font-medium text-gray-700">Calculator</h3>
+                            <h3 className="text-base font-medium text-gray-700">Calculator</h3>
                           </div>
                           <SimpleCalculator initialValue={sendToCalculator ? totalAmount.toString() : ''} />
                         </div>
@@ -962,7 +964,7 @@ function App() {
               )}
             </div>
 
-            <footer className="bg-gray-800 text-white py-6">
+            <footer className="bg-gray-800 text-white py-6 mt-8 relative z-10">
               <div className="container mx-auto px-4">
                 <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
                   <a 

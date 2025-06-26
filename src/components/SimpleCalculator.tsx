@@ -114,15 +114,15 @@ const SimpleCalculator: React.FC<SimpleCalculatorProps> = ({ initialValue = '0' 
     <div className="bg-gray-100 rounded-lg p-3">
       <div className="mb-2">
         <div className="flex justify-between items-center mb-1">
-          <div className="text-gray-600 text-xs h-4 overflow-x-auto whitespace-nowrap">
+          <div className="text-gray-600 text-xs h-4 overflow-x-auto whitespace-nowrap flex-1 mr-2">
             {expression}
           </div>
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="text-indigo-600 hover:text-indigo-800 p-1 rounded-full hover:bg-indigo-100 transition-colors"
+            className="text-indigo-600 hover:text-indigo-800 p-1 rounded-full hover:bg-indigo-100 transition-colors flex-shrink-0"
             title="Toggle History"
           >
-            <History size={16} />
+            <History size={14} />
           </button>
         </div>
         <input
@@ -130,7 +130,7 @@ const SimpleCalculator: React.FC<SimpleCalculatorProps> = ({ initialValue = '0' 
           value={display}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          className="w-full bg-white p-2 text-right text-lg font-bold rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full bg-white p-2 text-right text-base font-bold rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="0"
         />
       </div>
@@ -144,17 +144,17 @@ const SimpleCalculator: React.FC<SimpleCalculatorProps> = ({ initialValue = '0' 
               className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-colors"
               title="Clear History"
             >
-              <Trash2 size={14} />
+              <Trash2 size={12} />
             </button>
           </div>
           <div className="space-y-1 max-h-32 overflow-y-auto">
             {history.map((entry, index) => (
               <div
                 key={index}
-                className="text-sm p-1 hover:bg-gray-50 rounded cursor-pointer"
+                className="text-xs p-1 hover:bg-gray-50 rounded cursor-pointer"
                 onClick={() => useHistoryResult(entry.result)}
               >
-                <div className="text-gray-600">{entry.expression} = {entry.result}</div>
+                <div className="text-gray-600 break-all">{entry.expression} = {entry.result}</div>
                 <div className="text-xs text-gray-400">{entry.timestamp}</div>
               </div>
             ))}
@@ -173,7 +173,7 @@ const SimpleCalculator: React.FC<SimpleCalculatorProps> = ({ initialValue = '0' 
           onClick={handleBackspaceClick}
           className="bg-gray-200 p-2 rounded font-medium hover:bg-gray-300 active:bg-gray-400 transition-colors flex items-center justify-center text-sm"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={14} />
         </button>
         <button 
           onClick={() => handleOperatorClick('%')}
