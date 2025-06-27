@@ -1,5 +1,4 @@
 import { loadStripe } from '@stripe/stripe-js';
-import { pricingService } from './pricing';
 
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 

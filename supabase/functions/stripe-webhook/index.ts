@@ -33,8 +33,8 @@ serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session
         const { userId, planId } = session.metadata || {}
 
-        if (userId && planId) {
-          await handleSubscriptionActivation(userId, planId, session)
+        if (userId && planId && session.customer) {
+          await handleSubscriptionActivation(userId, planId, session.customer as string)
         }
         break
       }
@@ -71,7 +71,7 @@ serve(async (req) => {
   }
 })
 
-async function handleSubscriptionActivation(userId: string, planId: string, session: Stripe.Checkout.Session) {
+async function handleSubscriptionActivation(userId: string, planId: string, customerId: string) {
   try {
     const subscriptionEnd = new Date()
     
@@ -95,6 +95,7 @@ async function handleSubscriptionActivation(userId: string, planId: string, sess
         subscription_status: 'active',
         subscription_start: new Date().toISOString(),
         subscription_end: subscriptionEnd.toISOString(),
+        stripe_customer_id: customerId,
       })
       .eq('id', userId)
 
@@ -110,17 +111,29 @@ async function handleSubscriptionActivation(userId: string, planId: string, sess
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   try {
-    const userId = subscription.metadata?.userId
-    if (!userId) return
+    const customerId = subscription.customer as string
+    
+    // Find user by Stripe customer ID
+    const { data: userProfile } = await supabaseClient
+      .from('user_profiles')
+      .select('id')
+      .eq('stripe_customer_id', customerId)
+      .single()
 
-    const status = subscription.status === 'active' ? 'active' : 'inactive'
+    if (!userProfile) {
+      console.error('User not found for customer:', customerId)
+      return
+    }
+
+    const status = subscription.status === 'active' ? 'active' : 
+                   subscription.status === 'canceled' ? 'cancelled' : 'inactive'
     
     const { error } = await supabaseClient
       .from('user_profiles')
       .update({
         subscription_status: status,
       })
-      .eq('id', userId)
+      .eq('id', userProfile.id)
 
     if (error) {
       console.error('Error updating subscription status:', error)
@@ -132,15 +145,22 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 
 async function handleSubscriptionCancellation(subscription: Stripe.Subscription) {
   try {
-    const userId = subscription.metadata?.userId
-    if (!userId) return
+    const customerId = subscription.customer as string
+    
+    const { data: userProfile } = await supabaseClient
+      .from('user_profiles')
+      .select('id')
+      .eq('stripe_customer_id', customerId)
+      .single()
+
+    if (!userProfile) return
 
     const { error } = await supabaseClient
       .from('user_profiles')
       .update({
         subscription_status: 'cancelled',
       })
-      .eq('id', userId)
+      .eq('id', userProfile.id)
 
     if (error) {
       console.error('Error updating subscription cancellation:', error)
@@ -152,10 +172,18 @@ async function handleSubscriptionCancellation(subscription: Stripe.Subscription)
 
 async function handlePaymentSuccess(invoice: Stripe.Invoice) {
   try {
+    if (!invoice.subscription) return
+
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
-    const userId = subscription.metadata?.userId
+    const customerId = subscription.customer as string
     
-    if (!userId) return
+    const { data: userProfile } = await supabaseClient
+      .from('user_profiles')
+      .select('id')
+      .eq('stripe_customer_id', customerId)
+      .single()
+
+    if (!userProfile) return
 
     // Update subscription status to active on successful payment
     const { error } = await supabaseClient
@@ -163,7 +191,7 @@ async function handlePaymentSuccess(invoice: Stripe.Invoice) {
       .update({
         subscription_status: 'active',
       })
-      .eq('id', userId)
+      .eq('id', userProfile.id)
 
     if (error) {
       console.error('Error updating payment success:', error)
@@ -175,10 +203,18 @@ async function handlePaymentSuccess(invoice: Stripe.Invoice) {
 
 async function handlePaymentFailure(invoice: Stripe.Invoice) {
   try {
+    if (!invoice.subscription) return
+
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
-    const userId = subscription.metadata?.userId
+    const customerId = subscription.customer as string
     
-    if (!userId) return
+    const { data: userProfile } = await supabaseClient
+      .from('user_profiles')
+      .select('id')
+      .eq('stripe_customer_id', customerId)
+      .single()
+
+    if (!userProfile) return
 
     // Mark subscription as expired on payment failure
     const { error } = await supabaseClient
@@ -186,7 +222,7 @@ async function handlePaymentFailure(invoice: Stripe.Invoice) {
       .update({
         subscription_status: 'expired',
       })
-      .eq('id', userId)
+      .eq('id', userProfile.id)
 
     if (error) {
       console.error('Error updating payment failure:', error)

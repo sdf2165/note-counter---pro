@@ -8,6 +8,7 @@ export interface UserProfile {
   subscription_start?: string;
   subscription_end?: string;
   email_verified: boolean;
+  stripe_customer_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -98,7 +99,7 @@ export const authService = {
   },
 
   // Update subscription
-  async updateSubscription(userId: string, tier: 'monthly' | 'quarterly' | 'annual') {
+  async updateSubscription(userId: string, tier: 'monthly' | 'quarterly' | 'annual', stripeCustomerId?: string) {
     if (!supabase) throw new Error('Supabase not configured');
     
     const subscriptionEnd = new Date();
@@ -110,14 +111,20 @@ export const authService = {
       subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
     }
     
+    const updateData: any = {
+      subscription_tier: tier,
+      subscription_status: 'active',
+      subscription_start: new Date().toISOString(),
+      subscription_end: subscriptionEnd.toISOString(),
+    };
+
+    if (stripeCustomerId) {
+      updateData.stripe_customer_id = stripeCustomerId;
+    }
+    
     const { data, error } = await supabase
       .from('user_profiles')
-      .update({
-        subscription_tier: tier,
-        subscription_status: 'active',
-        subscription_start: new Date().toISOString(),
-        subscription_end: subscriptionEnd.toISOString(),
-      })
+      .update(updateData)
       .eq('id', userId)
       .select()
       .single();

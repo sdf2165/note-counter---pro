@@ -26,11 +26,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Define price mapping
+    // Define price mapping - Replace with your actual Stripe price IDs
     const priceMapping = {
-      monthly: 'price_1QVxxxxxxxxxxx', // Replace with your actual Stripe price IDs
-      quarterly: 'price_1QVxxxxxxxxxxx',
-      annual: 'price_1QVxxxxxxxxxxx'
+      monthly: 'price_1QVxxxxxxxxxxx', // $1/month
+      quarterly: 'price_1QVxxxxxxxxxxx', // $3/3 months
+      annual: 'price_1QVxxxxxxxxxxx' // $10/year
     }
 
     const priceId = priceMapping[planId as keyof typeof priceMapping]
@@ -38,9 +38,38 @@ serve(async (req) => {
       throw new Error('Invalid plan ID')
     }
 
+    // Create or retrieve Stripe customer
+    let customer
+    try {
+      const customers = await stripe.customers.list({
+        email: email,
+        limit: 1
+      })
+      
+      if (customers.data.length > 0) {
+        customer = customers.data[0]
+      } else {
+        customer = await stripe.customers.create({
+          email: email,
+          metadata: {
+            userId: userId
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Error creating/retrieving customer:', error)
+      throw new Error('Failed to create customer')
+    }
+
+    // Update user profile with Stripe customer ID
+    await supabaseClient
+      .from('user_profiles')
+      .update({ stripe_customer_id: customer.id })
+      .eq('id', userId)
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
-      customer_email: email,
+      customer: customer.id,
       payment_method_types: ['card'],
       line_items: [
         {
@@ -63,6 +92,12 @@ serve(async (req) => {
       },
       allow_promotion_codes: true,
       billing_address_collection: 'required',
+      tax_id_collection: {
+        enabled: true
+      },
+      automatic_tax: {
+        enabled: true
+      }
     })
 
     return new Response(
